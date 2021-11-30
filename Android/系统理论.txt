@@ -1,0 +1,17 @@
+1、语言
+	A、Java
+	B、C++
+	C、Kotlin
+	D、Groovy
+	E、Flutter
+	F、C
+2、Android应用
+3、Android Framework
+4、网络
+5、JNI
+6、进程、线程
+7、安全
+8、文件IO和网络IO
+9、Linux基础
+10、数据结构和算法
+11、设计模式
