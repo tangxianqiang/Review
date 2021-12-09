@@ -45,3 +45,7 @@
 
 * C要S通信，就得知道S是谁，并且调用S进程的对象的方法，并将参数数据传输过去，C只关心调用哪个对象，以及哪个对象方法和传输哪些参数数据，其他的不关心，C进程这个操作不关心底层内核怎么做，因此这个步骤是属于用户空间态
 * S进程不能直接告诉C进程说是它的服务器端，因为两个进程是不能直接通信的，他们都是独立的虚拟内存空间，相互隔离的，所以S只能先告诉一个更加具有系统级别的进程SM，告诉它我是一个远程服务器，我将来会提供什么服务。为什么是更系统级别的进程呢？因为普通进程相互隔离，如果没有一些特殊的系统功能，那么这个SM也就是中间的无用第三者，S甚至不能和它通信，它也就和C、S进程一样了。
+
+##### 客户端如何获取到对应name的BpBinder代理
+
+* 和服务端进程一样，也是先拿到ServiceManager的代理sp<IServiceManager> sm = defaultServiceManager(); 只是后面服务端是调用BpServiceManager的addService方法，客户端调用getService()方法，其中调用的checkService方法，并把name通过BpBinder的transact方法传进去，这里的流程和客户端一摸一样，talkWithDriver都要调用binder的ioctl函数，执行binder驱动的数据读取，也有copy_from_user等调用，最后ServiceManager也能在循环调用ioctl驱动函数中，感知客户端获取对应服务的指令，拿到指令之后就会将对应name的flat_binder_object传给binder驱动，binder驱动可以通过copy_to_user将服务器的binder传给客户端进程，最后通过客户端的转换，拿到这个binder对应的引用BpBinder，最后相当于new BpXXXXService(new BpBinder(handle))，这里的XXXX不是Servicemanager了

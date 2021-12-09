@@ -667,6 +667,7 @@ int main(int argc __unused, char** argv __unused)
       	void __user *end = buffer + size;
       	while (ptr < end && thread->return_error.cmd == BR_OK) {
       		int ret;
+      		//内核和用户空间简单数据的交换，这里是获取用户空间的cmd指令，这里是BC_TRANSACTION
       		if (get_user(cmd, (uint32_t __user *)ptr))
       			return -EFAULT;
       		ptr += sizeof(uint32_t);
@@ -886,6 +887,8 @@ int main(int argc __unused, char** argv __unused)
       		case BC_TRANSACTION:
       		case BC_REPLY: {
       			struct binder_transaction_data tr;
+      			//读取的是ptr后面的数据，ptr指向的是协议后面的开始地址，原始数据是一个bwr的结构体，这里调用了两次copy_from_user
+      			//tr中的handler是new BpBinder(0)时，传入的0
       			if (copy_from_user(&tr, ptr, sizeof(tr)))
       				return -EFAULT;
       			ptr += sizeof(tr);
@@ -1103,17 +1106,19 @@ int main(int argc __unused, char** argv __unused)
       		}
       		*consumed = ptr - buffer;
       	}
-      	return 0;
+    	return 0;
       }
       ```
-
-      
-
-    * 
-
-      
-
-      
-
-  * 
+    ```
+    
+    这里继续调用binder的binder_transact方法，由于在servicemanager启动后，并将自己的binder_proc设置成了binder的上下文，那么在内核的物理内存中，很容易找到servicemanager的信息，只需要将CameraService这个binder传给servicemanager，那么以后CameraService的客户端就可以通过servicemanager找到CameraService了，现在怎么将CameraService这个binder传给servicemanager？
+    ```
+  
+  * servicemanager和内核的物理内存是创建了mmap映射的，所以肯定有能力将内核内存反应到用户空间的，所以只需要在用户空间创建好指针引用，将CameraService进程的binder数据通过copy_from_user从CameraService用户空间的缓存拷贝到内核空间缓存，然后用用servicemanager用户空间的指针指向copy_from_user的内核缓存的指针，这样，servicemanager就能操作CameraService进程传来的数据了？这里到底是浅拷贝（用户空间是不能直接访问内核空间的，所以这个浅拷贝必须依赖mmap？）还是mmap（mmap是映射机制，内存共享也是映射机制，所以有跨进程的潜力）？我觉得肯定不能脱离mmap，也就是那128k的mmap，所以128k的大小是否和这个有关？
+  
+  * CameraService进程调用addService，最后调用binder的ioctl函数，进行binder_write_read操作，这里binder驱动是创建了线程的，而这个线程是对应当前的binder_proc，对应当前进程CameraService的线程红黑树，所以尽管servicemanager进程能够通过映射获取到CameraService进程的binder了，但是如何将代码执行权交给servicemanager，执行到它的loop中的？
+  
+    servicemanager的loop中，会一直通过ioctl一直不断的读取binder传来的数据，在未被唤醒之前一直都是BR_LOOP类型，直到有未处理事务，然后执行binder_parse方法解析，解析完成后会告诉binder，已经处理完，然后binder又告诉CameraService进程进入等待
+  
+    
 
