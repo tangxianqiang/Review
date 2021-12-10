@@ -6,6 +6,21 @@
 	E、Flutter
 	F、C
 2、Android应用
+	A、Handler原理
+	B、Binder机制
+	C、四大组件基础
+	D、权限
+	F、AMS、PMS等
+	G、三方库
+	H、日志相关
+	I、混淆和加固
+	J、图片、音频、视频处理
+	K、数据库、SP
+	L、常用控件使用
+	M、单击事件、双击事件、事件分发（事件传递）
+	N、自定义布局
+	O、线程
+	P、进程
 3、Android Framework
 4、网络
 5、JNI

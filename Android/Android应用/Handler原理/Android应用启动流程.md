@@ -1,5 +1,15 @@
 ## launcher上点击一个app图标启动一个应用程序
 
+##### 总体流程：launcher进程通过binder告诉SystemServer进程需要启动一个应用，SystemServer没有启动应用的权力，只能通过Socket告知Zygote进程fork进程。期间的细节和疑问：
+
+1. Android是没有fork进程的相关代码的，点击launcher的app图标只能是一个响应事件，最后也不过是一个startActivity，就像AndroidManifest文件中指定的新进程的组件一样，点击launcher的app图标告诉了SystemServer什么让其立马通知Zygote去fork进程？这里有和startActivity不一样的吗？
+2. AMS、ATM在这里充当什么角色？
+3. 为什么Launcher和SystemServer进程通信是通过binder，而SystemServer和Zygote进程通信为什么使用socket？
+4. Zygote进程启动新的进程后，给这个进程做了哪些初始化的工作？
+5. 新的应用启动后，怎么启动的第一个activity？
+6. 新的应用启动后，主线程做了哪些？主线程会死亡吗？为什么？
+7. Zygote进程fork新的进程后，新的应用的内存占用是什么情况？为什么点击launcher启动一个应用，通过观察AS的Profiler，其内存是从高到低，趋于稳定的？
+
 * Android aosp10-r30上显示，launcher不再是使用ListView展示的apps列表，而是RecyclerView，而且是AndroidX中的，LauncherActivity中废弃注解也提示用了该类（api30的SDK标注的，并不是源码标注的）
 
   ```java
@@ -15,7 +25,7 @@
 
 * launcher3中，桌面实际是一个Launcer的activity子类
 
-* 点击app后，执行的是activity的startActivity--startActivityForResult，所以这个就是普通app被创建启动的入口
+* 点击桌面app后，执行的是activity的startActivity--startActivityForResult，所以这个就是普通app被创建启动的入口
 
 ## 第一阶段：startActivity执行调用过程
 

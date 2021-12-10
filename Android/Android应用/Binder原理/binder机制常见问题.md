@@ -12,5 +12,19 @@
 
 ##### servicemanager是如何找到对应客户端的服务器端的？
 
+#### ServiceManager如何将数据传给Client的？
+
+#### Service端将自己的BBinder传给ServiceManager后，又做了什么？
+
+#### Service端传给ServiceManager明明是BBinder，为什么Client拿到的是BpBinder？
+
+##### BpBinder是什么，BBinder又是什么？
+
+# Binder用于进程间的通信，效率真的很高吗？是最优解吗？
+
+
+
+
+
 
 
